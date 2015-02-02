@@ -29,11 +29,11 @@ Editar agi.sh:
 Escribir este código:
 
     #!/bin/bash
-    source ash.sh
+    source /var/lib/asterisk/agi-bin/ash.sh
     
     DecirCaracteres Ash
     
-    exit 0
+    Fin
 
 **Ctrl+O - Enter - Ctrl+X** para guardar y salir.
 
