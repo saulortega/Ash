@@ -9,10 +9,11 @@
   ##
   ##
   ##  Historial de cambios:
-  ##  
+  ##
   ##  20150201-0130: Primer lanzamiento, apenas pruebas básicas de ejecución de algunos comandos en Asterisk
   ##  20150201-1505: Agregada función Log. Agregada función enviar que recoje las demás funciones y registra al log. Mejorada la función Grabar
   ##  20150202-1550: Agregada función DecirTeléfonoCO, que puede ser invocada desde el plan de marcado, sin tocar código. El cierre del log y del script pasan a ser llamados mediante la nueva función Fin.
+  ##  20150209-1115: Agregada función ComprobarTeléfonoCO; puede ser invocada desde el plan de marcado. Agregada opción para decir número fijo con indicativo en DecirTeléfonoCO. Quitada la opción "estricto" de DecirTeléfonoCO. Agregado registro en log de DecirTeléfonoCO.
   ##
  ###
 ####################################################################
@@ -21,7 +22,7 @@
 Empiezo=`date +"%Y-%m-%d %H:%M:%S %N"`
 
 
-HabilitarLog=No
+HabilitarLog=Si
 ArchivoLog=/var/log/ash.log
 
 
@@ -38,7 +39,7 @@ DirAGI=${AST_AGI_DIR}
 DirKey=${AST_KEY_DIR}
 DirRun=${AST_RUN_DIR}
 
-
+### Quitar comillas simples en comparación de expresiones regulares, porque no funciona en bash 4.2 Borrar esta línea, dejarla en blanco
 
 if [[ "$HabilitarLog" =~ '^[sS][iIíÍ]$' ]]; then
 	echo -e "\n">>$ArchivoLog
@@ -72,7 +73,6 @@ function Log() {
 		else
 			echo ${@}>>$ArchivoLog
 		fi
-		
 	else
 		break
 	fi
@@ -220,8 +220,8 @@ fi
 
 
 
-function enviar() {  
-	echo ${@}  
+function enviar() {
+	echo ${@}
 	Log ${@}
 }
 
@@ -313,7 +313,7 @@ function Colgar() {
 
 function NoHacerNada() {
 	### Texto opcional para que quede registrado en el log. ¿Mejor usar Registrar (Verbose)?
-	enviar NOOP ${1}
+	enviar NOOP \"${1}\"
 }
 
 function ObtenerCaracter() {
@@ -489,7 +489,7 @@ function DescargarGramática() {
 }
 
 function DescargarGramatica() {
-	enviar SPEECH UNLOAD GRAMMAR ${1}	
+	enviar SPEECH UNLOAD GRAMMAR ${1}
 }
 
 function Reproducir() {
@@ -519,44 +519,134 @@ function EsperarDigito() {
 }
 
 function DecirTeléfonoCO() {
-	### Número - "estricto" - Dígitos de escape - Género
+	## ${1}: El número
+	## ${2}: Dígitos de escape
+	## ${3}: Género
+
+	Registrar "Diciendo número telefónico..." 4
+
 	if [[ "${#1}" = 10 && "${1}" =~ '^3.*' ]]; then
 		if [[ "${1}" =~ '^30.*' ]]; then
-			DecirNúmero ${1:0:3} ${3} ${4}
-			DecirNúmero ${1:3:1} ${3} ${4}
-			DecirNúmero ${1:4:2} ${3} ${4}
-			DecirNúmero ${1:6:2} ${3} ${4}
-			DecirNúmero ${1:8:2} ${3} ${4}
+			DecirNúmero ${1:0:3} ${2} ${3}
+			DecirNúmero ${1:3:1} ${2} ${3}
+			DecirNúmero ${1:4:2} ${2} ${3}
+			DecirNúmero ${1:6:2} ${2} ${3}
+			DecirNúmero ${1:8:2} ${2} ${3}
 		else
-			DecirNúmero ${1:0:1} ${3} ${4}
-			DecirNúmero ${1:1:2} ${3} ${4}
-			DecirNúmero ${1:3:1} ${3} ${4}
-			DecirNúmero ${1:4:2} ${3} ${4}
-			DecirNúmero ${1:6:2} ${3} ${4}
-			DecirNúmero ${1:8:2} ${3} ${4}
+			DecirNúmero ${1:0:1} ${2} ${3}
+			DecirNúmero ${1:1:2} ${2} ${3}
+			DecirNúmero ${1:3:1} ${2} ${3}
+			DecirNúmero ${1:4:2} ${2} ${3}
+			DecirNúmero ${1:6:2} ${2} ${3}
+			DecirNúmero ${1:8:2} ${2} ${3}
 		fi
+		Registrar "Se dijo el número telefónico móvil" 4
 		Variable NumTel Móvil
 	elif [[ "${#1}" = 7 && "${1}" =~ '^[2-9].*' ]]; then
-		DecirNúmero ${1:0:1} ${3} ${4}
-		DecirNúmero ${1:1:2} ${3} ${4}
-		DecirNúmero ${1:3:2} ${3} ${4}
-		DecirNúmero ${1:5:2} ${3} ${4}
+		DecirNúmero ${1:0:1} ${2} ${3}
+		DecirNúmero ${1:1:2} ${2} ${3}
+		DecirNúmero ${1:3:2} ${2} ${3}
+		DecirNúmero ${1:5:2} ${2} ${3}
+		Registrar "Se dijo el número telefónico fijo" 4
 		Variable NumTel Fijo
+	elif [[ "${#1}" = 8 && "${1}" =~ '^[124-8][2-9].*' ]]; then
+		DecirNúmero ${1:0:1} ${2} ${3}
+		DecirNúmero ${1:1:1} ${2} ${3}
+		DecirNúmero ${1:2:2} ${2} ${3}
+		DecirNúmero ${1:4:2} ${2} ${3}
+		DecirNúmero ${1:6:2} ${2} ${3}
+		Registrar "Se dijo el número telefónico fijo con indicativo" 4
+		Variable NumTel FijoIndicativo
 	else
-		if [[ "${2}" == "estricto" || "${2}" == "ESTRICTO" || "${2}" == "Estricto" ]]; then
-			Variable NumTel Incorrecto
-		else
-			DecirNúmero ${1} ${3} ${4}
-			Variable NumTel Incorrecto
-		fi
+		DecirNúmero ${1} ${2} ${3}
+		Registrar "No era un número telefónico. Se reprodujo de manera nativa por Asterisk" 2
+		Variable NumTel Incorrecto
 	fi
+
+	return 0
+
 }
 
 function DecirTelefonoCO() {
 	DecirTeléfonoCO ${@}
 }
 
+function ComprobarTeléfonoCO() {
+	## ${1}: El número. Si no se especifica, devolverá la variable ComprobarTel con valor "vacío"
+	## ${2}: El tipo de teléfono a comprobar (M, F, o FI, separados por guion). Si no se especifica se asume M y F.
+	## ${3}: Destino al cual saltar si el número es evaluado como válido.
+	## ${4}: Destino al cual saltar si el número es evaluado como erróneo.
 
+	Registrar "Comprobando número telefónico..." 4
+
+	### Si no se pasa el número telefónico:
+	if [ -z "${1}" ]; then
+		Variable ComprobarTel vacío
+		Registrar "No se suministró el número telefónico a comprobar." 1
+		return 1
+	fi
+
+	### Si no se pasa el tipo de número:
+	if [[ -z "${2}" ]]; then
+		TipoNum=M-F
+		Registrar "No se suministró el tipo de número telefónico a comprobar. Se asume M (Móvil) y F (Fijo local)" 4
+	else
+		TipoNum=${2}
+	fi
+
+
+	### Separar los tipos de número a comprobar:
+	CompTelCO1=$(echo $TipoNum | cut -d '-' -f 1)
+	CompTelCO2=$(echo $TipoNum | cut -d '-' -f 2)
+	CompTelCO3=$(echo $TipoNum | cut -d '-' -f 3)
+
+
+	for ComTe in $CompTelCO1 $CompTelCO2 $CompTelCO3
+	do
+		if [[ $ComTe = [mM] ]]; then
+			if [[ "${#1}" = 10 && "${1}" =~ ^3.* ]]; then
+				Tel=válido
+				break
+			else
+				Tel=erróneo
+			fi
+		elif [[ $ComTe = [fF] ]]; then
+			if [[ "${#1}" = 7 && "${1}" =~ ^[2-9].* ]]; then
+				Tel=válido
+				break
+			else
+				Tel=erróneo
+			fi
+		elif [[ $ComTe = [fF][iI] ]]; then
+			if [[ "${#1}" = 8 && "${1}" =~ ^[124-8][2-9].* ]]; then
+				Tel=válido
+				break
+			else
+				Tel=erróneo
+			fi
+		fi
+	done
+
+	Registrar "El número telefónico fue evaluado como $Tel" 3
+	Variable ComprobarTel $Tel
+
+	if [[ -n "${3}" && "$Tel" = "válido" ]]; then
+		Registrar "Se salta a ${3}" 3
+		Ejecutar Goto ${3}
+	fi
+
+	if [[ -n "${4}" && "$Tel" = "erróneo" ]]; then
+		Registrar "Se salta a ${4}" 3
+		Ejecutar Goto ${4}
+	fi
+
+	return 0
+
+}
+
+function ComprobarTelefonoCO() {
+	ComprobarTeléfonoCO ${@}
+}
 
 
 
@@ -584,7 +674,30 @@ function Fin {
 
 
 
-if [[ "$Argumento1" =~ '^DecirTel[eé]fonoCO$' ]]; then
-	DecirTeléfonoCO $Argumento2 $Argumento3 $Argumento4 $Argumento5
+if [[ "$Argumento1" =~ '^ComprobarTel[eé]fonoCO$' ]]; then
+	## Argumento1: ComprobarTeléfonoCO
+	## Argumento2: El número
+	## Argumento3: El tipo de teléfono a comprobar (M, F, o FI, separados por guion).
+	## Argumento4: El destino al cual saltar si el número es evaluado como válido
+	## Argumento5: El destino al cual saltar si el número es evaluado como erróneo
+	ComprobarTeléfonoCO $Argumento2 $Argumento3 $Argumento4 $Argumento5
 	Fin
 fi
+
+if [[ "$Argumento1" =~ '^DecirTel[eé]fonoCO$' ]]; then
+	## Argumento1: DecirTeléfonoCO
+	## Argumento2: El número
+	## Argumento3: Dígitos de escape
+	## Argumento4: Género
+	DecirTeléfonoCO $Argumento2 $Argumento3 $Argumento4
+	Fin
+fi
+
+
+
+
+
+
+
+### Pendientes:
+### Las expresiones regulares podrían requerir que se les quite las comillas simples para compatibilidad con otras versiones de bash. Verificar.
