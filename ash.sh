@@ -14,6 +14,7 @@
   ##  20150201-1505: Agregada función Log. Agregada función enviar que recoje las demás funciones y registra al log. Mejorada la función Grabar
   ##  20150202-1550: Agregada función DecirTeléfonoCO, que puede ser invocada desde el plan de marcado, sin tocar código. El cierre del log y del script pasan a ser llamados mediante la nueva función Fin.
   ##  20150209-1115: Agregada función ComprobarTeléfonoCO; puede ser invocada desde el plan de marcado. Agregada opción para decir número fijo con indicativo en DecirTeléfonoCO. Quitada la opción "estricto" de DecirTeléfonoCO. Agregado registro en log de DecirTeléfonoCO.
+  ##  20150220-1000: Mejorados los condicionales con expresiones regulares para compatibilidad con versiones recientes de Bash.
   ##
  ###
 ####################################################################
@@ -39,9 +40,9 @@ DirAGI=${AST_AGI_DIR}
 DirKey=${AST_KEY_DIR}
 DirRun=${AST_RUN_DIR}
 
-### Quitar comillas simples en comparación de expresiones regulares, porque no funciona en bash 4.2 Borrar esta línea, dejarla en blanco
 
-if [[ "$HabilitarLog" =~ '^[sS][iIíÍ]$' ]]; then
+
+if [[ "$HabilitarLog" =~ ^[sS][iIíÍ]$ ]]; then
 	echo -e "\n">>$ArchivoLog
 	echo "####################################################################">>$ArchivoLog
 	echo "######## Inicio de ejecución: $Empiezo ########">>$ArchivoLog
@@ -67,7 +68,7 @@ fi
 
 
 function Log() {
-	if [[ "$HabilitarLog" =~ '^[sS][iIíÍ]$' ]]; then
+	if [[ "$HabilitarLog" =~ ^[sS][iIíÍ]$ ]]; then
 		if [ ${1} = "VariableCanal" ]; then
 			echo -e "${2}:\t${4}${3}">>$ArchivoLog
 		else
@@ -85,122 +86,122 @@ linea='init'
 while [ -n "${linea}" ]; do
 	read linea
 
-	if [[ "$linea" =~ '^agi_request: (.*)' ]]; then
+	if [[ "$linea" =~ ^agi_request:\ (.*) ]]; then
 		EstaAGI=${BASH_REMATCH[1]}
 		Log VariableCanal EstaAGI $EstaAGI
 
-	elif [[ "$linea" =~ '^agi_channel: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_channel:\ (.*) ]]; then
 		Canal=${BASH_REMATCH[1]}
 		Log VariableCanal Canal $Canal "\t"
 
-	elif [[ "$linea" =~ '^agi_language: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_language:\ (.*) ]]; then
 		Idioma=${BASH_REMATCH[1]}
 		Log VariableCanal Idioma $Idioma "\t"
 
-	elif [[ "$linea" =~ '^agi_type: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_type:\ (.*) ]]; then
 		Tipo=${BASH_REMATCH[1]}
 		Log VariableCanal Tipo $Tipo "\t"
 
-	elif [[ "$linea" =~ '^agi_uniqueid: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_uniqueid:\ (.*) ]]; then
 		Identificador=${BASH_REMATCH[1]}
 		Log VariableCanal Identificador $Identificador
 
-	elif [[ "$linea" =~ '^agi_version: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_version:\ (.*) ]]; then
 		Version=${BASH_REMATCH[1]}
 		Log VariableCanal Versión $Version
 
-	elif [[ "$linea" =~ '^agi_callerid: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_callerid:\ (.*) ]]; then
 		CID=${BASH_REMATCH[1]}
 		NumeroLlamante=${BASH_REMATCH[1]}
 		Log VariableCanal CID $CID "\t"
 
-	elif [[ "$linea" =~ '^agi_calleridname: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_calleridname:\ (.*) ]]; then
 		NombreLlamante=${BASH_REMATCH[1]}
 		Log VariableCanal "Nombre CID" $NombreLlamante
 
-	elif [[ "$linea" =~ '^agi_callingpres: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_callingpres:\ (.*) ]]; then
 		Presentacion=${BASH_REMATCH[1]}
 		Log VariableCanal Presentación $Presentacion
 
-	elif [[ "$linea" =~ '^agi_callingani2: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_callingani2:\ (.*) ]]; then
 		ANI2=${BASH_REMATCH[1]}
 		Log VariableCanal ANI2 $ANI2 "\t"
 
-	elif [[ "$linea" =~ '^agi_callington: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_callington:\ (.*) ]]; then
 		TON=${BASH_REMATCH[1]}
 		Log VariableCanal TON $TON "\t"
 
-	elif [[ "$linea" =~ '^agi_callingtns: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_callingtns:\ (.*) ]]; then
 		TNS=${BASH_REMATCH[1]}
 		Log VariableCanal TNS $TNS "\t"
 
-	elif [[ "$linea" =~ '^agi_dnid: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_dnid:\ (.*) ]]; then
 		DNID=${BASH_REMATCH[1]}
 		DID=${BASH_REMATCH[1]}
 		Log VariableCanal DID $DID "\t"
 
-	elif [[ "$linea" =~ '^agi_rdnis: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_rdnis:\ (.*) ]]; then
 		RDNIS=${BASH_REMATCH[1]}
 		Log VariableCanal RDNIS $RDNIS "\t"
 
-	elif [[ "$linea" =~ '^agi_context: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_context:\ (.*) ]]; then
 		Contexto=${BASH_REMATCH[1]}
 		Log VariableCanal Contexto $Contexto
 
-	elif [[ "$linea" =~ '^agi_extension: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_extension:\ (.*) ]]; then
 		Extension=${BASH_REMATCH[1]}
 		Log VariableCanal Extensión $Extension
 
-	elif [[ "$linea" =~ '^agi_priority: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_priority:\ (.*) ]]; then
 		Prioridad=${BASH_REMATCH[1]}
 		Log VariableCanal Prioridad $Prioridad
 
-	elif [[ "$linea" =~ '^agi_enhanced: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_enhanced:\ (.*) ]]; then
 		Mejorado=${BASH_REMATCH[1]}
 		Log VariableCanal "AGI Mejorado" $Mejorado
 
-	elif [[ "$linea" =~ '^agi_accountcode: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_accountcode:\ (.*) ]]; then
 		CodigoCuenta=${BASH_REMATCH[1]}
 		Log VariableCanal "Código de cuenta" $CodigoCuenta
 
-	elif [[ "$linea" =~ '^agi_threadid: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_threadid:\ (.*) ]]; then
 		ThreadID=${BASH_REMATCH[1]}
 		Log VariableCanal ThreadID $ThreadID
 
 	###Mejorar código de los siguientes con un for que se adapte a la cantidad de argumentos recibidos, y disminuir código
-	elif [[ "$linea" =~ '^agi_arg_1: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_1:\ (.*) ]]; then
 		Argumento1=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento1 $Argumento1
 
-	elif [[ "$linea" =~ '^agi_arg_2: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_2:\ (.*) ]]; then
 		Argumento2=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento2 $Argumento2
 
-	elif [[ "$linea" =~ '^agi_arg_3: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_3:\ (.*) ]]; then
 		Argumento3=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento3 $Argumento3
 
-	elif [[ "$linea" =~ '^agi_arg_4: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_4:\ (.*) ]]; then
 		Argumento4=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento4 $Argumento4
 
-	elif [[ "$linea" =~ '^agi_arg_5: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_5:\ (.*) ]]; then
 		Argumento5=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento5 $Argumento5
 
-	elif [[ "$linea" =~ '^agi_arg_6: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_6:\ (.*) ]]; then
 		Argumento6=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento6 $Argumento6
 
-	elif [[ "$linea" =~ '^agi_arg_7: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_7:\ (.*) ]]; then
 		Argumento7=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento7 $Argumento7
 
-	elif [[ "$linea" =~ '^agi_arg_8: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_8:\ (.*) ]]; then
 		Argumento8=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento8 $Argumento8
 
-	elif [[ "$linea" =~ '^agi_arg_9: (.*)' ]]; then
+	elif [[ "$linea" =~ ^agi_arg_9:\ (.*) ]]; then
 		Argumento9=${BASH_REMATCH[1]}
 		Log VariableCanal Argumento9 $Argumento9
 
@@ -211,7 +212,7 @@ done
 
 
 
-if [[ "$HabilitarLog" =~ '^[sS][iIíÍ]$' ]]; then
+if [[ "$HabilitarLog" =~ ^[sS][iIíÍ]$ ]]; then
 	echo -e "\n">>$ArchivoLog
 	echo "******** Comandos enviados a Asterisk ********">>$ArchivoLog
 fi
@@ -525,8 +526,8 @@ function DecirTeléfonoCO() {
 
 	Registrar "Diciendo número telefónico..." 4
 
-	if [[ "${#1}" = 10 && "${1}" =~ '^3.*' ]]; then
-		if [[ "${1}" =~ '^30.*' ]]; then
+	if [[ "${#1}" = 10 && "${1}" =~ ^3.* ]]; then
+		if [[ "${1}" =~ ^30.* ]]; then
 			DecirNúmero ${1:0:3} ${2} ${3}
 			DecirNúmero ${1:3:1} ${2} ${3}
 			DecirNúmero ${1:4:2} ${2} ${3}
@@ -542,14 +543,14 @@ function DecirTeléfonoCO() {
 		fi
 		Registrar "Se dijo el número telefónico móvil" 4
 		Variable NumTel Móvil
-	elif [[ "${#1}" = 7 && "${1}" =~ '^[2-9].*' ]]; then
+	elif [[ "${#1}" = 7 && "${1}" =~ ^[2-9].* ]]; then
 		DecirNúmero ${1:0:1} ${2} ${3}
 		DecirNúmero ${1:1:2} ${2} ${3}
 		DecirNúmero ${1:3:2} ${2} ${3}
 		DecirNúmero ${1:5:2} ${2} ${3}
 		Registrar "Se dijo el número telefónico fijo" 4
 		Variable NumTel Fijo
-	elif [[ "${#1}" = 8 && "${1}" =~ '^[124-8][2-9].*' ]]; then
+	elif [[ "${#1}" = 8 && "${1}" =~ ^[124-8][2-9].* ]]; then
 		DecirNúmero ${1:0:1} ${2} ${3}
 		DecirNúmero ${1:1:1} ${2} ${3}
 		DecirNúmero ${1:2:2} ${2} ${3}
@@ -657,7 +658,7 @@ function ComprobarTelefonoCO() {
 Termino=`date +"%Y-%m-%d %H:%M:%S %N"`
 
 function Fin {
-	if [[ "$HabilitarLog" =~ '^[sS][iIíÍ]$' ]]; then
+	if [[ "$HabilitarLog" =~ ^[sS][iIíÍ]$ ]]; then
 		echo -e "\n">>$ArchivoLog
 		echo "#####################################################################">>$ArchivoLog
 		echo "########## Fin de ejecución: $Termino ##########">>$ArchivoLog
@@ -674,7 +675,7 @@ function Fin {
 
 
 
-if [[ "$Argumento1" =~ '^ComprobarTel[eé]fonoCO$' ]]; then
+if [[ "$Argumento1" =~ ^ComprobarTel[eé]fonoCO$ ]]; then
 	## Argumento1: ComprobarTeléfonoCO
 	## Argumento2: El número
 	## Argumento3: El tipo de teléfono a comprobar (M, F, o FI, separados por guion).
@@ -684,7 +685,7 @@ if [[ "$Argumento1" =~ '^ComprobarTel[eé]fonoCO$' ]]; then
 	Fin
 fi
 
-if [[ "$Argumento1" =~ '^DecirTel[eé]fonoCO$' ]]; then
+if [[ "$Argumento1" =~ ^DecirTel[eé]fonoCO$ ]]; then
 	## Argumento1: DecirTeléfonoCO
 	## Argumento2: El número
 	## Argumento3: Dígitos de escape
@@ -692,12 +693,3 @@ if [[ "$Argumento1" =~ '^DecirTel[eé]fonoCO$' ]]; then
 	DecirTeléfonoCO $Argumento2 $Argumento3 $Argumento4
 	Fin
 fi
-
-
-
-
-
-
-
-### Pendientes:
-### Las expresiones regulares podrían requerir que se les quite las comillas simples para compatibilidad con otras versiones de bash. Verificar.
