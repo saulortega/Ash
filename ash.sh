@@ -15,6 +15,7 @@
   ##  20150202-1550: Agregada función DecirTeléfonoCO, que puede ser invocada desde el plan de marcado, sin tocar código. El cierre del log y del script pasan a ser llamados mediante la nueva función Fin.
   ##  20150209-1115: Agregada función ComprobarTeléfonoCO; puede ser invocada desde el plan de marcado. Agregada opción para decir número fijo con indicativo en DecirTeléfonoCO. Quitada la opción "estricto" de DecirTeléfonoCO. Agregado registro en log de DecirTeléfonoCO.
   ##  20150220-1000: Mejorados los condicionales con expresiones regulares para compatibilidad con versiones recientes de Bash.
+  ##  20150225-1644: Agregada condición para decir dígitos en vez de número cuando cada par empieza por cero en DecirTeléfonoCO.
   ##
  ###
 ####################################################################
@@ -530,36 +531,84 @@ function DecirTeléfonoCO() {
 		if [[ "${1}" =~ ^30.* ]]; then
 			DecirNúmero ${1:0:3} ${2} ${3}
 			DecirNúmero ${1:3:1} ${2} ${3}
-			DecirNúmero ${1:4:2} ${2} ${3}
-			DecirNúmero ${1:6:2} ${2} ${3}
-			DecirNúmero ${1:8:2} ${2} ${3}
+			if [[ "${1:4:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:4:2} ${2} ${3}
+			else
+				DecirNúmero ${1:4:2} ${2} ${3}
+			fi
+			if [[ "${1:6:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:6:2} ${2} ${3}
+			else
+				DecirNúmero ${1:6:2} ${2} ${3}
+			fi
+			if [[ "${1:8:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:8:2} ${2} ${3}
+			else
+				DecirNúmero ${1:8:2} ${2} ${3}
+			fi
 		else
 			DecirNúmero ${1:0:1} ${2} ${3}
 			DecirNúmero ${1:1:2} ${2} ${3}
 			DecirNúmero ${1:3:1} ${2} ${3}
-			DecirNúmero ${1:4:2} ${2} ${3}
-			DecirNúmero ${1:6:2} ${2} ${3}
-			DecirNúmero ${1:8:2} ${2} ${3}
+			if [[ "${1:4:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:4:2} ${2} ${3}
+			else
+				DecirNúmero ${1:4:2} ${2} ${3}
+			fi
+			if [[ "${1:6:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:6:2} ${2} ${3}
+			else
+				DecirNúmero ${1:6:2} ${2} ${3}
+			fi
+			if [[ "${1:8:2}" =~ ^0.* ]]; then
+				DecirDígitos ${1:8:2} ${2} ${3}
+			else
+				DecirNúmero ${1:8:2} ${2} ${3}
+			fi
 		fi
 		Registrar "Se dijo el número telefónico móvil" 4
 		Variable NumTel Móvil
 	elif [[ "${#1}" = 7 && "${1}" =~ ^[2-9].* ]]; then
 		DecirNúmero ${1:0:1} ${2} ${3}
-		DecirNúmero ${1:1:2} ${2} ${3}
-		DecirNúmero ${1:3:2} ${2} ${3}
-		DecirNúmero ${1:5:2} ${2} ${3}
+		if [[ "${1:1:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:1:2} ${2} ${3}
+		else
+			DecirNúmero ${1:1:2} ${2} ${3}
+		fi
+		if [[ "${1:3:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:3:2} ${2} ${3}
+		else
+			DecirNúmero ${1:3:2} ${2} ${3}
+		fi
+		if [[ "${1:5:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:5:2} ${2} ${3}
+		else
+			DecirNúmero ${1:5:2} ${2} ${3}
+		fi
 		Registrar "Se dijo el número telefónico fijo" 4
 		Variable NumTel Fijo
 	elif [[ "${#1}" = 8 && "${1}" =~ ^[124-8][2-9].* ]]; then
 		DecirNúmero ${1:0:1} ${2} ${3}
 		DecirNúmero ${1:1:1} ${2} ${3}
-		DecirNúmero ${1:2:2} ${2} ${3}
-		DecirNúmero ${1:4:2} ${2} ${3}
-		DecirNúmero ${1:6:2} ${2} ${3}
+		if [[ "${1:2:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:2:2} ${2} ${3}
+		else
+			DecirNúmero ${1:2:2} ${2} ${3}
+		fi
+		if [[ "${1:4:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:4:2} ${2} ${3}
+		else
+			DecirNúmero ${1:4:2} ${2} ${3}
+		fi
+		if [[ "${1:6:2}" =~ ^0.* ]]; then
+			DecirDígitos ${1:6:2} ${2} ${3}
+		else
+			DecirNúmero ${1:6:2} ${2} ${3}
+		fi
 		Registrar "Se dijo el número telefónico fijo con indicativo" 4
 		Variable NumTel FijoIndicativo
 	else
-		DecirNúmero ${1} ${2} ${3}
+		DecirDígitos ${1} ${2} ${3}
 		Registrar "No era un número telefónico. Se reprodujo de manera nativa por Asterisk" 2
 		Variable NumTel Incorrecto
 	fi
